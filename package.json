@@ -1,37 +1,48 @@
 {
-  "name" : "angular-tz-extensions",
-  "description" : "Extend date objects to include timezone",
-  "version" : "0.3.10",
-  "homepage" : "https://github.com/chouseknecht/angular-tz-extensions",
-  "author" : {
-    "name" : "Chris Houseknecht",
-    "email" : "chouse@ansbile.com"
+  "name": "angular-tz-extensions",
+  "description": "Extend date objects to include timezone",
+  "version": "0.3.11",
+  "author": {
+    "name": "Chris Houseknecht",
+    "email": "chouse@ansbile.com"
   },
-
-  "repository" : {
-    "type" : "git",
-    "url" : "git@github.com:chouseknecht/angular-tz-extensions.git"
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/leigh-johnson/angular-tz-extensions.git"
   },
-
-  "dependencies" : {
+  "dependencies": {
+    "angular": "1.4.7",
+    "angular-filters": "^1.1.2",
+    "jquery": "^3.1.0",
+    "jstimezonedetect": "1.0.5",
+    "timezone-js": "leigh-johnson/timezone-js#0.4.13"
   },
-
-  "devDependencies" : {
-    "karma" : "0.8.x",
-    "phantomjs" : "1.9.x",
+  "devDependencies": {
+    "karma": "0.8.x",
+    "phantomjs": "1.9.x",
     "grunt": "~0.4.2",
     "grunt-contrib-jshint": "~0.8.0",
     "grunt-contrib-uglify": "~0.3.1"
   },
-
-  "scripts" : {
-    "test" : "karma start test/karma.conf.js"
+  "scripts": {
+    "test": "karma start test/karma.conf.js"
   },
-
-  "contributors" : [
+  "contributors": [
     {
-      "name" : "Chris Houseknecht",
-      "email" : "chouse@ansible.com"
+      "name": "Chris Houseknecht",
+      "email": "chouse@ansible.com"
     }
-  ]
+  ],
+  "gitHead": "b3c30d22ddd75f2a7f0184a1443a3c25d5dd7315",
+  "readme": "# Angular TZ Extensions\n\nJavascript is good at creating dates in the local timezone, and it provides a reasonable set of methods for returning date and time information within the local timezone and UTC. But what if you want a date object aligned to a timezone other than the local one? What if you need to present the user with a list of timezone choices? What if you need to know the offset or abbreviation for a particular timezone? Angular TZ Extensions provides the solution.\n\nOriginally forked from  https://github.com/michaelahlers/angular-timezones.\nDepends on https://github.com/mde/timezone-js, http://pellepim.bitbucket.org/jstz/ and [AngularJS](http://angularjs.org).\n\n## Install \n\nInstall using [Bower](https://github.com/bower/bower):\n\n    bower install angular-tz-extensions\n\nOnce installed include the follwing scripts in your app:\n\n    <script type=\"text/javascript\" src=\"/bower_components/timezone-js/src/date.js\"></script>\n    <script type=\"text/javascript\" src=\"/bower_components/angular-tz-extensions/lib/angular-tz-extensions.js\"></script>\n\nIf you want to detect the local timezone, include the jstimezonedetect. You can use the package found in this repo:\n\n    <script type=\"text/javascript\" src=\"/packages/jstimezonedetect/jstz.min.js\"></script>\n   \nOr, pull it from a CDN:\n\n    <script type=\"text/javascript\" src=\"http://cdnjs.cloudflare.com/ajax/libs/jstimezonedetect/1.0.4/jstz.js\"></script>\n    \n## Usage\n\nAfter including `angular-timezones.js`, add this package to your application.\n\n    var yourApplication = angular.module('your-application', ['Timezones'])\n\n### Configuration\n\nThis package provides the [IANA timezone data](http://iana.org/time-zones), but you may have this resource served from a different location or you may wish to provide your own data. To change that location, set the `$timezones.definitions.location` property to the appropriate path or URL.\n\n    yourApplication.constant('$timezones.definitions.location', '/custom/path/to/tz/data')\n\nThis is done by the unit tests and illustrated in the included sample app (see Examples below).\n\n### Align date to a given timezone\n\nUse `$timezones.align(timezone, date)` to align a date object to a timezone represeneted as an Olsan timezone string value. The getFullYear, getMonth, getDate, getHours, getMinutes, getSeconds and getTimezone methods of the returned date object will present values in the requested timezone.\n\nBelow is an example comparing a date object aligned to the local timezone (America/New_York) with a date object created using the align method a timezone of 'America/Los_Angeles':\n\n\tvar rightNow = new Date();\n\tconsole.log(rightNow.getTimezoneOffset());\n\tconsole.log(rightNow.getHours());\n\tconsole.log($filter('date')(rightNow,\"yyyy-MM-dd HH:mm:ss Z\"));\n\n\tvar test = $timezones.align(rightNow, 'America/Los_Angeles'); \n\tconsole.log(test.timezone);\n\tconsole.log(test.getTimezoneOffset());\n\tconsole.log(test.getHours());\n\tconsole.log($filter('date')(test,\"yyyy-MM-dd HH:mm:ss Z\"));\n\nResults in:\n\n\t300 \n\t14\n\t2014-03-03 14:40:33 -0500\n\t\n\tAmerica/Los_Angeles\n\t480\n\t11\n\t2014-03-03 11:40:33 -0800\n\nNote that TimezoneJS (timezone-js/src/date.js) adds additional properties and methods to the date object. Here we're accessing the timezone property. There is also a getTimezoneInfo() method. See TimezoneJS documentation for more details. \n\nAlignment can also be accomplished at the view level using the provided tzAlign filter:\n\n\t\t\t{{ someDate|tzAlign:'America/Los_Angeles'|date:\"yyyy-MM-dd HH:mm:ss Z\" }}\n\n### Resolve a timezone\n\nThe `$timezones.resolve(timezone, reference)` function will, using the reference `Date` provided, look up complete details about the timezone&mdash;including the abbreviation, offset, and decomposed region and locality. This is useful for avoiding clever tricks to extract abbreviations from `Date.toString` (which is not particularly portable or robust). Additionally, resulting values are derived from the authoritative IANA timezone data.\n\t\n    var scope.timezone = $timezone.resolve('America/New_York', new Date());\n    console.log(scope.timezone);\n\nReturns:\n    \n    {\n        abbreviation: 'EST',\n        locality: 'New York',\n        name: 'America/New_York',\n        offset: 300,\n        region: 'America'\n    }\n\n### Detect local timezone\n\nIf [jsTimezoneDetect](https://bitbucket.org/pellepim/jstimezonedetect) is included, the `$timezones.getLocal()` function will detect the browser's local timezone and provide a complete definition that's resolved against the IANA database. For convenience, jsTimezoneDetect is included in packages/jstimezonedetect. You may want to pull the latest version in from bitbucket.\n\n\n\n### Get a list of available timezones\n\nYou can retrieve an array of all available timezones- perfect for populating a select element. Use the `$timezone.getZoneList($scope)` method, passing in a scope instance. The method reads the zone.tab tab file, which is part of tzdata. When the data is ready, the method emits 'zonesReady'. Retrieve the data inside `$scope.$on('zonesReady', callback)`. The data will be available in local storage and can be accessed using: `JSON.parse(localStorage.zones)`. Here's an example taken from the included sample app:  \n    \n    if ($scope.removeZonesReady) {\n        $scope.removeZonesReady();\n    }\n    $scope.removeZonesReady = $scope.$on('zonesReady', function() {\n        var i;\n        $scope.zones = JSON.parse(localStorage.zones);\n        $scope.current_timezone = $timezones.getLocal();\n        for (i=0; i < $scope.zones.length; i++) {\n            if ($scope.zones[i].name === $scope.current_timezone.name) {\n                $scope.selectedZone = $scope.zones[i];\n                break;\n            }\n        }\n    });\n\n    $timezones.getZoneList($scope);\n\n## Examples\n\nA sample application is included. Run it locally using [Node](http://nodejs.org):\n\n    node ./scripts/web-server.js\n\nOnce running, point your browser to http://localhost:8000/app/filters.html\n\n## Developers\n\n_Timezones for Angular_ is tested with [Karma](http://karma-runner.github.io/) and [PhantomJS](http://phantomjs.org/)\n\nWith [NPM](http://npmjs.com/) installed, you can test your modifications with the following.\n\n    npm install\n    npm test\n\nTo run the tests you will need to have phantomjs in your PATH. Install it globally using `npm install -g phantomjs` or manually add it to your path using something like `export PATH=$PATH:./node_modules/phantomjs/bin/phantomjs`\n\n",
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/leigh-johnson/angular-tz-extensions/issues"
+  },
+  "homepage": "https://github.com/leigh-johnson/angular-tz-extensions#readme",
+  "_id": "angular-tz-extensions@0.3.11",
+  "_shasum": "5016af88353f1d5cb89e6d6728d5b82e88182d75",
+  "_from": "chouseknecht/angular-tz-extensions#0.3.11",
+  "_resolved": "git://github.com/chouseknecht/angular-tz-extensions.git#9066aa2535ef924f11184ac300aab989adf4418f"
 }
